@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Viral Studio — For Creators</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #E8D08A;
+    --gold-dim: rgba(201,168,76,0.15);
+    --dark: #0A0905;
+    --dark-2: #12100A;
+    --dark-3: #1C1912;
+    --dark-4: #242018;
+    --text: #F0EDE4;
+    --text-dim: #8A8370;
+    --border: rgba(201,168,76,0.2);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--dark);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background grain */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Radial glow top */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -200px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 800px;
+    height: 400px;
+    background: radial-gradient(ellipse, rgba(201,168,76,0.07) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ===== HEADER ===== */
+  header {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    padding: 60px 20px 40px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--gold);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+
+  .logo-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 15px;
+    font-weight: 400;
+    letter-spacing: 0.25em;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+
+  header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(42px, 7vw, 78px);
+    font-weight: 300;
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+
+  header h1 em {
+    font-style: italic;
+    color: var(--gold-light);
+  }
+
+  header p {
+    margin-top: 16px;
+    color: var(--text-dim);
+    font-size: 15px;
+    letter-spacing: 0.05em;
+  }
+
+  /* ===== TABS ===== */
+  .tabs-wrapper {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,9,5,0.92);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tabs {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 18px 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    transition: color 0.3s;
+    position: relative;
+  }
+
+  .tab::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 20%;
+    right: 20%;
+    height: 1px;
+    background: var(--gold);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+  }
+
+  .tab.active {
+    color: var(--gold-light);
+  }
+
+  .tab.active::after {
+    transform: scaleX(1);
+  }
+
+  .tab:hover { color: var(--text); }
+
+  /* ===== MAIN LAYOUT ===== */
+  main {
+    position: relative;
+    z-index: 5;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 50px 24px 80px;
+  }
+
+  .panel { display: none; animation: fadeUp 0.4s ease; }
+  .panel.active { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===== FORM ELEMENTS ===== */
+  .field-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .field-group.single { grid-template-columns: 1fr; }
+
+  .field-label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+
+  input, textarea, select {
+    width: 100%;
+    background: var(--dark-3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 300;
+    padding: 13px 16px;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.2s;
+    appearance: none;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--gold);
+    background: var(--dark-4);
+  }
+
+  textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+
+  select option { background: var(--dark-3); }
+
+  /* ===== BUTTONS ===== */
+  .btn-generate {
+    width: 100%;
+    padding: 16px;
+    margin-top: 24px;
+    background: linear-gradient(135deg, #C9A84C, #A8863A);
+    border: none;
+    border-radius: 4px;
+    color: #0A0905;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-generate::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    transition: left 0.5s;
+  }
+
+  .btn-generate:hover::before { left: 100%; }
+  .btn-generate:hover { opacity: 0.92; }
+  .btn-generate:active { transform: scale(0.99); }
+  .btn-generate:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ===== OUTPUT CARD ===== */
+  .output-card {
+    margin-top: 36px;
+    background: var(--dark-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    display: none;
+  }
+
+  .output-card.visible { display: block; animation: fadeUp 0.4s ease; }
+
+  .output-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .output-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 14px;
+    letter-spacing: 0.1em;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+
+  .copy-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+  }
+
+  .copy-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .copy-btn.copied { color: #6FCF97; border-color: #6FCF97; }
+
+  .output-body {
+    padding: 24px;
+    line-height: 1.8;
+    font-size: 15px;
+    color: var(--text);
+    white-space: pre-wrap;
+  }
+
+  /* Script specific */
+  .script-section {
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(201,168,76,0.1);
+  }
+
+  .script-section:last-child { border-bottom: none; margin-bottom: 0; }
+
+  .script-section-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+
+  .script-section-content {
+    font-size: 14px;
+    line-height: 1.9;
+    color: var(--text);
+  }
+
+  /* Ideas Grid */
+  .ideas-grid {
+    display: grid;
+    gap: 16px;
+    padding: 20px;
+  }
+
+  .idea-card {
+    background: var(--dark-3);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 18px 20px;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+
+  .idea-card:hover { border-color: var(--gold); }
+
+  .idea-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 300;
+    color: var(--gold-dim);
+    line-height: 1;
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .idea-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .idea-desc {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+
+  .idea-tag {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold);
+    border: 1px solid var(--gold-dim);
+    padding: 3px 8px;
+    border-radius: 2px;
+  }
+
+  /* Hooks list */
+  .hook-item {
+    padding: 16px 24px;
+    border-bottom: 1px solid rgba(201,168,76,0.08);
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    transition: background 0.2s;
+  }
+
+  .hook-item:last-child { border-bottom: none; }
+  .hook-item:hover { background: rgba(201,168,76,0.03); }
+
+  .hook-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    color: var(--gold);
+    opacity: 0.5;
+    min-width: 28px;
+    line-height: 1.4;
+  }
+
+  .hook-text {
+    font-size: 14px;
+    line-height: 1.75;
+    color: var(--text);
+    flex: 1;
+  }
+
+  /* Loading state */
+  .loading-overlay {
+    padding: 48px 24px;
+    text-align: center;
+    display: none;
+  }
+
+  .loading-overlay.visible { display: block; }
+
+  .loader {
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--border);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    margin: 0 auto 16px;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loader-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    color: var(--text-dim);
+    font-size: 15px;
+  }
+
+  /* Divider */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 32px 0;
+  }
+
+  /* Panel header */
+  .panel-header {
+    margin-bottom: 36px;
+  }
+
+  .panel-header h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 300;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .panel-header p {
+    font-size: 13px;
+    color: var(--text-dim);
+    letter-spacing: 0.03em;
+    line-height: 1.6;
+  }
+
+  /* Toggle chips */
+  .chip-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .chip {
+    padding: 7px 14px;
+    background: var(--dark-3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-size: 12px;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .chip.selected {
+    background: var(--gold-dim);
+    border-color: var(--gold);
+    color: var(--gold-light);
+  }
+
+  @media (max-width: 600px) {
+    .field-group { grid-template-columns: 1fr; }
+    header h1 { font-size: 38px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">
+    <div class="logo-icon">✦</div>
+    <span class="logo-text">Viral Studio</span>
+  </div>
+  <h1>Create Content<br>That <em>Stops</em> the Scroll</h1>
+  <p>Built for storytellers, documenters & creator educators</p>
+</header>
+
+<div class="tabs-wrapper">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('script')">✦ Reel Script</button>
+    <button class="tab" onclick="switchTab('hooks')">✦ Hook Generator</button>
+    <button class="tab" onclick="switchTab('ideas')">✦ Viral Ideas</button>
+  </div>
+</div>
+
+<main>
+
+  <!-- ===== SCRIPT PANEL ===== -->
+  <div class="panel active" id="panel-script">
+    <div class="panel-header">
+      <h2>Reel Script Writer</h2>
+      <p>Generate a complete, structured reel script — hook, story arc, CTA — tailored for your content style.</p>
+    </div>
+
+    <div class="field-group single">
+      <label class="field-label">What is this reel about?</label>
+      <textarea id="script-topic" placeholder="e.g. How I went from 0 to 10k followers documenting my daily life honestly..." rows="3"></textarea>
+    </div>
+
+    <div class="field-group">
+      <div>
+        <label class="field-label">Content Style</label>
+        <select id="script-style">
+          <option value="storytelling">Personal Storytelling</option>
+          <option value="documenting">Behind-the-Scenes / Documenting</option>
+          <option value="tutorial">Creator Tips / Tutorial</option>
+          <option value="transformation">Transformation / Journey</option>
+          <option value="raw">Raw & Unfiltered</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-label">Reel Duration</label>
+        <select id="script-duration">
+          <option value="15">15 seconds</option>
+          <option value="30" selected>30 seconds</option>
+          <option value="60">60 seconds</option>
+          <option value="90">90 seconds</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field-group single">
+      <label class="field-label">Target Emotion / Reaction</label>
+      <div class="chip-group" id="emotion-chips">
+        <span class="chip selected" data-val="inspired">Inspired</span>
+        <span class="chip" data-val="curious">Curious</span>
+        <span class="chip" data-val="emotional">Emotional</span>
+        <span class="chip" data-val="motivated">Motivated</span>
+        <span class="chip" data-val="shocked">Shocked</span>
+        <span class="chip" data-val="relatable">Relatable</span>
+      </div>
+    </div>
+
+    <button class="btn-generate" onclick="generateScript()">Generate Script →</button>
+
+    <div class="output-card" id="script-output">
+      <div class="output-header">
+        <span class="output-title">Your Reel Script</span>
+        <button class="copy-btn" onclick="copyOutput('script-output-body', this)">Copy</button>
+      </div>
+      <div id="script-output-body" class="output-body"></div>
+    </div>
+  </div>
+
+  <!-- ===== HOOKS PANEL ===== -->
+  <div class="panel" id="panel-hooks">
+    <div class="panel-header">
+      <h2>Hook Generator</h2>
+      <p>The first 3 seconds decide everything. Generate 8 scroll-stopping opening lines for your content.</p>
+    </div>
+
+    <div class="field-group single">
+      <label class="field-label">Your Content Topic</label>
+      <input type="text" id="hook-topic" placeholder="e.g. I quit my 9-5 to become a full-time creator...">
+    </div>
+
+    <div class="field-group">
+      <div>
+        <label class="field-label">Hook Style</label>
+        <select id="hook-style">
+          <option value="curiosity">Curiosity Gap</option>
+          <option value="story">Story Opening</option>
+          <option value="bold">Bold Statement</option>
+          <option value="question">Provocative Question</option>
+          <option value="vulnerable">Vulnerable / Raw</option>
+          <option value="mixed">Mixed (All Styles)</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-label">Audience</label>
+        <select id="hook-audience">
+          <option value="creators">Aspiring Creators</option>
+          <option value="documenting">People who love real stories</option>
+          <option value="growth">Creators wanting to grow</option>
+          <option value="general">General Instagram audience</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn-generate" onclick="generateHooks()">Generate 8 Hooks →</button>
+
+    <div class="output-card" id="hooks-output">
+      <div class="output-header">
+        <span class="output-title">Scroll-Stopping Hooks</span>
+        <button class="copy-btn" onclick="copyOutput('hooks-output-body', this)">Copy All</button>
+      </div>
+      <div id="hooks-output-body"></div>
+    </div>
+  </div>
+
+  <!-- ===== IDEAS PANEL ===== -->
+  <div class="panel" id="panel-ideas">
+    <div class="panel-header">
+      <h2>Viral Ideas Generator</h2>
+      <p>Fresh, platform-native content ideas for storytellers and creator educators. Break through creative blocks.</p>
+    </div>
+
+    <div class="field-group">
+      <div>
+        <label class="field-label">Current Phase / Theme</label>
+        <select id="ideas-theme">
+          <option value="growth">Growing as a creator</option>
+          <option value="documenting">Documenting daily life</option>
+          <option value="storytelling">Personal stories</option>
+          <option value="teaching">Teaching other creators</option>
+          <option value="behind">Behind the scenes</option>
+          <option value="transformation">Transformation / Journey</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-label">Number of Ideas</label>
+        <select id="ideas-count">
+          <option value="5">5 ideas</option>
+          <option value="8" selected>8 ideas</option>
+          <option value="12">12 ideas</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field-group single">
+      <label class="field-label">Any context about you or your page? (optional)</label>
+      <input type="text" id="ideas-context" placeholder="e.g. 2K followers, posting 3x a week, my audience loves raw/honest content">
+    </div>
+
+    <button class="btn-generate" onclick="generateIdeas()">Generate Ideas →</button>
+
+    <div class="output-card" id="ideas-output">
+      <div class="output-header">
+        <span class="output-title">Viral Content Ideas</span>
+        <button class="copy-btn" onclick="copyIdeas(this)">Copy All</button>
+      </div>
+      <div id="ideas-output-body" class="ideas-grid"></div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ===== API CONFIG =====
+const API_URL = "https://api.anthropic.com/v1/messages";
+const MODEL = "claude-sonnet-4-20250514";
+
+// ===== TAB SWITCHING =====
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', ['script','hooks','ideas'][i] === tab);
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + tab).classList.add('active');
+}
+
+// ===== CHIP SELECTION =====
+document.getElementById('emotion-chips').addEventListener('click', e => {
+  if (e.target.classList.contains('chip')) {
+    e.target.classList.toggle('selected');
+  }
+});
+
+function getSelectedEmotions() {
+  return [...document.querySelectorAll('#emotion-chips .chip.selected')]
+    .map(c => c.dataset.val).join(', ') || 'inspired';
+}
+
+// ===== API CALL =====
+async function callClaude(prompt) {
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: MODEL,
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  const data = await res.json();
+  return data.content[0].text;
+}
+
+// ===== SHOW LOADING =====
+function setLoading(btn, isLoading) {
+  btn.disabled = isLoading;
+  btn.textContent = isLoading ? 'Generating...' : btn.dataset.original || btn.textContent;
+}
+
+// ===== GENERATE SCRIPT =====
+async function generateScript() {
+  const topic = document.getElementById('script-topic').value.trim();
+  if (!topic) { alert('Please enter your reel topic.'); return; }
+
+  const style = document.getElementById('script-style').value;
+  const duration = document.getElementById('script-duration').value;
+  const emotions = getSelectedEmotions();
+  const btn = document.querySelector('#panel-script .btn-generate');
+  const outputCard = document.getElementById('script-output');
+  const outputBody = document.getElementById('script-output-body');
+
+  btn.disabled = true;
+  btn.textContent = 'Writing your script...';
+  outputCard.classList.remove('visible');
+
+  const prompt = `You are an elite Instagram Reel scriptwriter specializing in ${style} content for creator pages. 
+
+Write a complete, compelling reel script for the following:
+
+Topic: ${topic}
+Content Style: ${style}
+Duration: ${duration} seconds
+Target Emotions: ${emotions}
+
+Format the script in clearly labeled sections:
+
+HOOK (first 3 seconds):
+[Write an irresistible opening line that stops the scroll]
+
+STORY / BODY:
+[Main content - spoken lines, natural and conversational. Match the ${duration}s duration. Use short punchy sentences. Line breaks between each spoken sentence.]
+
+CALL TO ACTION:
+[One powerful, specific CTA that feels natural not salesy]
+
+CAPTION STARTER:
+[First line of caption to continue the story]
+
+Keep the tone: authentic, personal, direct-to-camera feel. No generic advice. Make it feel human and real.`;
+
+  try {
+    const result = await callClaude(prompt);
+    outputBody.innerHTML = formatScript(result);
+    outputCard.classList.add('visible');
+  } catch(e) {
+    outputBody.textContent = 'Something went wrong. Please try again.';
+    outputCard.classList.add('visible');
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Generate Script →';
+}
+
+function formatScript(text) {
+  const sections = text.split(/\n(?=[A-Z\s]+:)/);
+  let html = '';
+  sections.forEach(section => {
+    const colonIdx = section.indexOf(':');
+    if (colonIdx > -1 && colonIdx < 40) {
+      const label = section.substring(0, colonIdx).trim();
+      const content = section.substring(colonIdx + 1).trim();
+      html += `<div class="script-section">
+        <div class="script-section-label">${label}</div>
+        <div class="script-section-content">${content.replace(/\n/g, '<br>')}</div>
+      </div>`;
+    } else {
+      html += `<div class="script-section"><div class="script-section-content">${section.replace(/\n/g, '<br>')}</div></div>`;
+    }
+  });
+  return html || `<div class="script-section-content">${text.replace(/\n/g, '<br>')}</div>`;
+}
+
+// ===== GENERATE HOOKS =====
+async function generateHooks() {
+  const topic = document.getElementById('hook-topic').value.trim();
+  if (!topic) { alert('Please enter your content topic.'); return; }
+
+  const style = document.getElementById('hook-style').value;
+  const audience = document.getElementById('hook-audience').value;
+  const btn = document.querySelector('#panel-hooks .btn-generate');
+  const outputCard = document.getElementById('hooks-output');
+  const outputBody = document.getElementById('hooks-output-body');
+
+  btn.disabled = true;
+  btn.textContent = 'Crafting hooks...';
+  outputCard.classList.remove('visible');
+
+  const prompt = `You are a viral Instagram content strategist who specializes in opening hooks for reels.
+
+Generate exactly 8 powerful, scroll-stopping opening hooks for this content:
+
+Topic: ${topic}
+Hook Style: ${style}
+Audience: ${audience}
+
+Rules:
+- Each hook must be 1-2 sentences max (under 15 words ideally)
+- Hooks should feel spoken, natural, direct-to-camera
+- Create genuine curiosity, emotion, or pattern-interruption
+- No clickbait that feels fake. Real, specific, powerful.
+- Vary the angles and emotions across the 8 hooks
+
+Return ONLY the 8 hooks, numbered 1-8. No intro text, no explanations. Just the hooks.`;
+
+  try {
+    const result = await callClaude(prompt);
+    outputBody.innerHTML = formatHooks(result);
+    outputCard.classList.add('visible');
+  } catch(e) {
+    outputBody.innerHTML = '<div class="hook-item"><div class="hook-text">Something went wrong. Please try again.</div></div>';
+    outputCard.classList.add('visible');
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Generate 8 Hooks →';
+}
+
+function formatHooks(text) {
+  const lines = text.split('\n').filter(l => l.trim());
+  let html = '';
+  let num = 0;
+  lines.forEach(line => {
+    const clean = line.replace(/^\d+[\.\)]\s*/, '').trim();
+    if (clean) {
+      num++;
+      html += `<div class="hook-item">
+        <span class="hook-num">0${num}</span>
+        <div class="hook-text">${clean}</div>
+      </div>`;
+    }
+  });
+  return html;
+}
+
+// ===== GENERATE IDEAS =====
+async function generateIdeas() {
+  const theme = document.getElementById('ideas-theme').value;
+  const count = document.getElementById('ideas-count').value;
+  const context = document.getElementById('ideas-context').value.trim();
+  const btn = document.querySelector('#panel-ideas .btn-generate');
+  const outputCard = document.getElementById('ideas-output');
+  const outputBody = document.getElementById('ideas-output-body');
+
+  btn.disabled = true;
+  btn.textContent = 'Finding ideas...';
+  outputCard.classList.remove('visible');
+
+  const prompt = `You are a viral Instagram content strategist for creators who focus on storytelling, documenting life, and helping other creators grow.
+
+Generate exactly ${count} viral content ideas for the theme: "${theme}"
+${context ? `Creator context: ${context}` : ''}
+
+For each idea, respond in this EXACT JSON format (array of objects):
+[
+  {
+    "title": "Short punchy idea title",
+    "description": "2-3 sentence description of what to create and why it will resonate",
+    "format": "Reel / Carousel / Story",
+    "virality": "Why this will go viral in one short phrase"
+  }
+]
+
+Make ideas feel fresh, specific, and real — not generic. They should feel like ideas a top creator would actually execute.
+Return ONLY the JSON array. No extra text.`;
+
+  try {
+    const result = await callClaude(prompt);
+    const clean = result.replace(/```json|```/g, '').trim();
+    const ideas = JSON.parse(clean);
+    outputBody.innerHTML = '';
+    ideas.forEach((idea, i) => {
+      outputBody.innerHTML += `
+        <div class="idea-card">
+          <span class="idea-num">${String(i+1).padStart(2,'0')}</span>
+          <div class="idea-title">${idea.title}</div>
+          <div class="idea-desc">${idea.description}</div>
+          <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+            <span class="idea-tag">${idea.format}</span>
+            <span class="idea-tag" style="color:var(--gold-light);border-color:rgba(232,208,138,0.2);">🔥 ${idea.virality}</span>
+          </div>
+        </div>`;
+    });
+    outputCard.classList.add('visible');
+  } catch(e) {
+    outputBody.innerHTML = '<div class="idea-card"><div class="idea-desc">Something went wrong. Please try again.</div></div>';
+    outputCard.classList.add('visible');
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Generate Ideas →';
+}
+
+// ===== COPY =====
+function copyOutput(id, btn) {
+  const el = document.getElementById(id);
+  const text = el.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied ✓';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function copyIdeas(btn) {
+  const el = document.getElementById('ideas-output-body');
+  const text = el.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied ✓';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy All'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+</script>
+</body>
+</html>
